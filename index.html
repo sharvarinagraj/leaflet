@@ -64,14 +64,47 @@
     <script
         src="plugins/Leaflet.StyledLayerControl-master/Leaflet.StyledLayerControl-master/src/styledLayerControl.js"></script>
 
-
-    <style>
+   <style>
         #map {
             height: 100vh;
             float: right;
         }
 
-        .geo-search svg {
+        .leaflet-touch .leaflet-control-layers-toggle {
+            width: 30px;
+            height: 30px;
+        }
+
+        ::-webkit-scrollbar {
+            width: 12px;
+        }
+
+        ::-webkit-scrollbar-track {
+            -webkit-box-shadow: inset 0 0 6px rgba(248, 244, 244, 0.925);
+            border-radius: 10px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            border-radius: 10px;
+            -webkit-box-shadow: inset 0 0 6px rgba(247, 244, 244, 0.945);
+        }
+
+        img,
+        svg {
+            vertical-align: middle;
+            width: "50px";
+        }
+
+        .hasDatepicker {
+            background-color: rgba(34, 33, 33, 0.5);
+            color: azure;
+        }
+
+        #sidebar {
+            background-color: rgba(34, 33, 33, 0.4);
+        }
+
+        /* .geo-search svg {
             width: 1.4em;
             height: 2em;
 
@@ -237,6 +270,9 @@
             overflow-y: hidden;
             overflow-x: hidden;
             height: auto;
+        } */
+        #sidebar {
+            z-index: 100000;
         }
     </style>
 </head>
@@ -254,17 +290,65 @@
 
     <body>
 
+
         <div id="map" class="col-md-12 "></div>
         <div id="sidebar">
-            <button id="btnlocation" class="btn btn-primary btn-block">Locate</button>
-            <button id="btnzocolo" class="btn btn-primary btn-block">Pune</button>
-            <h4>Zoom level: <span id="zoomLevel"></span></h4>
-            <h4>map center: <span id="center"></span></h4>
-            <h4>mouse location: <span id="location"></span></h4>
+            <div class="calender">
+                <label for="from">From</label>
+                <input type="text" id="from" name="from" value>
+                <label for="to">to</label>
+                <input type="text" id="to" name="to" value>
+                <button onclick="myFunction()">Try it</button>
+            </div>
         </div>
 
 
+        </p>
+        <button onclick="myFunction()">Click me</button>
         <script>
+
+
+            var x = $(function () {
+                var dateFormat = "yy-mm-dd",
+                    from = $("#from")
+                        .datepicker({
+                            currentText: "Now",
+                            dateFormat: "yy-mm-dd",
+                            defaultDate: "+1w",
+                            changeMonth: true,
+                            numberOfMonths: 1
+                        })
+                        .on("change", function () {
+                            to.datepicker("option", "minDate", getDate(this));
+                        }),
+                    to = $("#to").datepicker({
+                        dateFormat: "yy-mm-dd",
+                        defaultDate: "+1w",
+                        changeMonth: true,
+                        numberOfMonths: 1
+                    })
+                        .on("change", function () {
+                            from.datepicker("option", "maxDate", getDate(this));
+                        });
+
+                function getDate(element) {
+                    var date;
+                    try {
+                        date = $.datepicker.parseDate(dateFormat, element.value);
+                    } catch (error) {
+                        date = null;
+                    }
+
+                    return date
+
+                    console.log(date)
+
+                }
+            });
+
+            var todate = document.getElementById("to").value;
+            var frmdate = document.getElementById("from").value;
+
             var mymap, lyrOSM, mycurrentlocation, popuppune, popuppune1, cntrlzoom, cntrlattribution;
             var cntrlmeasure, cntrlsearch, cntrleasybtn, cntrlsidebar, objBasemaps, objOverlays;
 
@@ -281,7 +365,43 @@
                 lyrTopo = L.tileLayer.provider('OpenTopoMap');
                 lyrOutdoors = L.tileLayer.provider('Stadia.Outdoors');
 
+                $('.from').each(function () {
+                    var elem = $(this);
 
+                    // Save current value of element
+                    elem.data('oldVal', elem.val());
+
+                    // Look for changes in the value
+                    elem.bind("propertychange change click keyup input paste", function (event) {
+                        // If value has changed...
+                        if (elem.data('oldVal') != elem.val()) {
+                            // Updated stored value
+                            elem.data('oldVal', elem.val());
+
+                            // Do action
+
+                        }
+                    });
+                });
+
+                $('.to').each(function () {
+                    var elem = $(this);
+
+                    // Save current value of element
+                    elem.data('oldVal', elem.val());
+
+                    // Look for changes in the value
+                    elem.bind("propertychange change click keyup input paste", function (event) {
+                        // If value has changed...
+                        if (elem.data('oldVal') != elem.val()) {
+                            // Updated stored value
+                            elem.data('oldVal', elem.val());
+
+                            // Do action
+
+                        }
+                    });
+                });
 
 
                 var a3Size = {
@@ -459,9 +579,20 @@
                 });
 
 
+                b = "2021-01-29/2021-01-29";
+                c = document.getElementById("to").value
 
                 //Base Images Nov2019 ends
 
+                var nexrad = L.tileLayer.wms("https://services.sentinel-hub.com/ogc/wms/4c1b718e-b076-46ef-bdce-92ec7083176f?REQUEST=GetMap", {
+                    layers: 'TRUE-COLOR-S2L2A',
+                    format: 'image/png',
+                    transparent: true,
+                    time: `${b}`,
+                    BBOX: "8115777.9152,2229515.2410,8172035.5680,2240522.1731",
+
+                });
+                console.log(nexrad)
 
 
                 //Base Images May 2020
@@ -570,7 +701,6 @@
 
 
                 //Base Images May 2021ends
-
 
                 //nove 2021 starts
                 var Panvel_Updated_image_Nov_2021 = L.tileLayer.wms("http://localhost:8082/geoserver/wms", {
@@ -684,7 +814,16 @@
 
                 // });
 
-
+                // var options = {
+                //     maxZoom: 16,
+                //     tolerance: 3,
+                //     debug: 0,
+                //     style: {
+                //         fillColor: "#1EB300",
+                //         color: "#F2FF00",
+                //     },
+                // };
+                // var vtLayer = L.geoJson.vt(geojson, options).addTo(map);
 
 
 
@@ -1039,6 +1178,12 @@
                     }
                 };
 
+
+
+                let overlayMaps = {
+                    'Sentinel Hub WMS': nexrad
+                }
+                L.control.layers(baseMaps, overlayMaps).addTo(mymap);
                 //map.addControl(new L.Control.CategorizedLayers(baseLayers, overLayers, { collapsed: false }));
 
                 //geojson
@@ -1123,9 +1268,9 @@
                 cntrlmeasure = L.control.polylineMeasure({ position: 'topright' }).addTo(mymap);
 
                 cntrlsidebar = L.control.sidebar('sidebar').addTo(mymap)
-                mymap.on('zoomend', function () {
-                    $("#zoomLevel").html(mymap.getZoom());
-                });
+                // mymap.on('zoomend', function () {
+                //     $("#zoomLevel").html(mymap.getZoom());
+                // });
 
                 mymap.on('moveend', function () {
                     $("#center").html(latlongtoarray(mymap.getCenter()));
@@ -1148,6 +1293,10 @@
                 })
 
             });
+            // var tasmania = new L.TileLayer.WMS('https://services.sentinel-hub.com/ogc/wms/81f55581-59f5-4fff-9f06-b1afaa9b69d0?REQUEST=GetMapBBOX=-13152499,4038942,-13115771,4020692', {
+
+            // }).addTo(mymap)
+            // console.log(tasmania)
 
 
 
@@ -1163,6 +1312,3 @@
 
     </html>
 
-</body>
-
-</html>
